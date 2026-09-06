@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Türkçe Sanal Casino</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:0;background:#111;color:#fff}
+.wrap{max-width:520px;margin:auto;padding:20px}
+.card{background:#1d1d1f;border-radius:20px;padding:18px;margin:14px 0;box-shadow:0 8px 30px #0005}
+h1{margin-top:5px}.balance{font-size:26px;font-weight:700}
+button,input{font:inherit;border:0;border-radius:12px;padding:12px;margin:5px}
+button{background:#fff;color:#111;font-weight:700;cursor:pointer}
+input{width:90px;background:#333;color:#fff}
+.slots{font-size:48px;text-align:center;letter-spacing:8px;padding:15px}
+.msg{min-height:28px;text-align:center;font-weight:700}
+.small{color:#aaa;font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🎰 Sanal Casino</h1>
+  <div class="card">
+    <div class="small">Sadece oyun içi sanal para</div>
+    <div class="balance">💰 <span id="bal">1000</span> 🪙</div>
+  </div>
+
+  <div class="card">
+    <h2>🎰 Slot</h2>
+    <div class="slots" id="slots">🍒 🍋 ⭐</div>
+    <input id="slotBet" type="number" min="1" value="50">
+    <button onclick="slot()">Çevir</button>
+    <div class="msg" id="slotMsg"></div>
+  </div>
+
+  <div class="card">
+    <h2>🪙 Yazı-Tura</h2>
+    <input id="cfBet" type="number" min="1" value="50">
+    <button onclick="coin('Yazı')">Yazı</button>
+    <button onclick="coin('Tura')">Tura</button>
+    <div class="msg" id="cfMsg"></div>
+  </div>
+
+  <div class="card">
+    <h2>🎲 Zar</h2>
+    <input id="diceBet" type="number" min="1" value="50">
+    <button onclick="dice()">Zar At</button>
+    <div class="msg" id="diceMsg"></div>
+  </div>
+
+  <div class="card">
+    <button onclick="daily()">🎁 Günlük 250 🪙</button>
+    <button onclick="resetGame()">🔄 Sıfırla</button>
+    <div class="small">Gerçek para veya ödül içermez.</div>
+  </div>
+</div>
+
+<script>
+let balance=Number(localStorage.getItem("balance")||1000);
+let lastDaily=Number(localStorage.getItem("daily")||0);
+const emojis=["🍒","🍋","⭐","🔔","💎"];
+
+function save(){localStorage.setItem("balance",balance);document.getElementById("bal").textContent=balance}
+function validBet(id){
+  const n=Math.floor(Number(document.getElementById(id).value));
+  if(!Number.isFinite(n)||n<1||n>balance)return null;
+  return n;
+}
+function slot(){
+  const bet=validBet("slotBet"); if(!bet)return msg("slotMsg","Geçerli bir bahis gir veya bakiyeni kontrol et.");
+  balance-=bet;
+  const a=[...Array(3)].map(()=>emojis[Math.floor(Math.random()*emojis.length)]);
+  document.getElementById("slots").textContent=a.join(" ");
+  let win=0;
+  if(a[0]===a[1]&&a[1]===a[2]) win=bet*5;
+  else if(a[0]===a[1]||a[1]===a[2]||a[0]===a[2]) win=bet*2;
+  balance+=win; save();
+  msg("slotMsg",win?`🎉 +${win} 🪙 kazandın!`:`😅 Bu tur kaybettin.`);
+}
+function coin(choice){
+  const bet=validBet("cfBet"); if(!bet)return msg("cfMsg","Geçerli bir bahis gir veya bakiyeni kontrol et.");
+  const result=Math.random()<.5?"Yazı":"Tura";
+  if(result===choice){balance+=bet;msg("cfMsg",`🪙 ${result}! +${bet} 🪙`)}
+  else{balance-=bet;msg("cfMsg",`🪙 ${result}! -${bet} 🪙`)}
+  save();
+}
+function dice(){
+  const bet=validBet("diceBet"); if(!bet)return msg("diceMsg","Geçerli bir bahis gir veya bakiyeni kontrol et.");
+  const n=1+Math.floor(Math.random()*6);
+  if(n>=4){balance+=bet;msg("diceMsg",`🎲 ${n} geldi! +${bet} 🪙`)}
+  else{balance-=bet;msg("diceMsg",`🎲 ${n} geldi! -${bet} 🪙`)}
+  save();
+}
+function daily(){
+  const now=Date.now(), day=86400000;
+  if(now-lastDaily<day){const h=Math.ceil((day-(now-lastDaily))/3600000);return alert(`⏳ Günlük ödül için yaklaşık ${h} saat bekle.`)}
+  balance+=250;lastDaily=now;localStorage.setItem("daily",lastDaily);save();alert("🎁 250 🪙 aldın!");
+}
+function resetGame(){balance=1000;localStorage.setItem("balance",balance);save();document.getElementById("slots").textContent="🍒 🍋 ⭐";document.querySelectorAll(".msg").forEach(x=>x.textContent="")}
+function msg(id,t){document.getElementById(id).textContent=t}
+save();
+</script>
+</body>
+</html>
